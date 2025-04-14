@@ -4,6 +4,7 @@ using System.Xml;
 using System.Diagnostics;
 using System.Globalization;
 using System.Threading;
+using System.Data;
 
 using MzqcCsLib;
 
@@ -1601,57 +1602,66 @@ namespace TDAuditor
             // byRun
             while (LCMSMSRunner != null)
             {
+                Console.WriteLine("\t\tmzqc for file: {0}", LCMSMSRunner.SourceFile);
+                Console.WriteLine("\t\tmzqc for file: {0}", LCMSMSRunner.Instrument ?? "unknown");
+                Console.WriteLine("\t\tmzqc for file: {0}", LCMSMSRunner.StartTimeStamp);
+                Console.WriteLine("\t\tmzqc for file: {0}", LCMSMSRunner.mzMLMS1Count);
+
                 var run = new BaseQuality{ Metadata = new Metadata {
                     InputFiles = [ new InputFile { Name = LCMSMSRunner.SourceFile,
-                        Location = new System.Uri(LCMSMSRunner.SourceFile),
+                        Location = new System.Uri("file://" + LCMSMSRunner.SourceFile),
                         FileFormat = new CvParameter { Accession = "MS:1000584", Name = "mzML format"},
-                        FileProperties = [new CvParameter { Accession = "MS:1000031",
+                        FileProperties = [
+                            new CvParameter { Accession = "MS:1000031",
                             Name = "instrument model",
-                            Value = LCMSMSRunner.Instrument}, 
+                            Value = LCMSMSRunner.Instrument ?? "unknown"}, 
                             new CvParameter { Accession = "MS:1000747",
                                 Name = "completion time",
                                 Value = LCMSMSRunner.StartTimeStamp} ]
                             //     LCMSMSRunner.SerialNumber
                             //     LCMSMSRunner.MaxScanStartTime
+                        
                     }]
                     // "analysisSoftware"
                 }};
-
-                run.QualityMetrics.Add(new QualityMetric { Accession = "MS:4000059",
-                    Name = "number of MS1 spectra",
-                    Value = LCMSMSRunner.mzMLMS1Count }
-                );
-                run.QualityMetrics.Add(new QualityMetric { Accession = "MS:4000060",
-                    Name = "number of MS2 spectra",
-                    Value = LCMSMSRunner.mzMLMSnCount }
-                );
-                run.QualityMetrics.Add(new QualityMetric { Accession = "MS:4000099",
-                    Name = "number of empty MS1 scans",
-                    //     MSnCountWithPeaks
-                    Value = LCMSMSRunner.mzMLMSnCount - LCMSMSRunner.msAlignMSnCount0 }
-                );
-            //     var MSnWithPeaksFraction = MSnCountWithPeaks / (float)LCMSMSRunner.mzMLMSnCount;
-            //     MSnWithPeaksFraction
-            //     LCMSMSRunner.Redundancy
-            //     LCMSMSRunner.HighestDegree
-            //     LCMSMSRunner.LargestComponentSize
-            //     LCMSMSRunner.ComponentCount
-            //     LCMSMSRunner.mzMLHCDCount
-            //     LCMSMSRunner.mzMLCIDCount
-            //     LCMSMSRunner.mzMLETDCount
-            //     LCMSMSRunner.mzMLECDCount
-            //     LCMSMSRunner.mzMLEThcDCount
-            //     LCMSMSRunner.mzMLETciDCount
-            run.QualityMetrics.Add(new QualityMetric { Accession = "MS:4000063",
-                    Name = "MS2 known precursor charges fractions",
-                    Value = LCMSMSRunner.mzMLPrecursorZQuartiles }
-                );
-            //     foreach (var ThisQuartile in LCMSMSRunner.msAlignPrecursorZQuartiles)
-            //         ThisQuartile
-            run.QualityMetrics.Add(new QualityMetric { Accession = "MS:4000062",
-                    Name = "MS2 density quantiles",
-                    Value = LCMSMSRunner.msAlignPrecursorMassQuartiles }
-                );
+                run.QualityMetrics =
+                [
+                    new QualityMetric { Accession = "MS:4000059",
+                        Name = "number of MS1 spectra",
+                        Value = LCMSMSRunner.mzMLMS1Count }
+,
+                    new QualityMetric { Accession = "MS:4000060",
+                        Name = "number of MS2 spectra",
+                        Value = LCMSMSRunner.mzMLMSnCount }
+,
+                    new QualityMetric { Accession = "MS:4000099",
+                        Name = "number of empty MS1 scans",
+                        //     MSnCountWithPeaks
+                        Value = LCMSMSRunner.mzMLMSnCount - LCMSMSRunner.msAlignMSnCount0 }
+,
+                    //     var MSnWithPeaksFraction = MSnCountWithPeaks / (float)LCMSMSRunner.mzMLMSnCount;
+                    //     MSnWithPeaksFraction
+                    //     LCMSMSRunner.Redundancy
+                    //     LCMSMSRunner.HighestDegree
+                    //     LCMSMSRunner.LargestComponentSize
+                    //     LCMSMSRunner.ComponentCount
+                    //     LCMSMSRunner.mzMLHCDCount
+                    //     LCMSMSRunner.mzMLCIDCount
+                    //     LCMSMSRunner.mzMLETDCount
+                    //     LCMSMSRunner.mzMLECDCount
+                    //     LCMSMSRunner.mzMLEThcDCount
+                    //     LCMSMSRunner.mzMLETciDCount
+                    new QualityMetric { Accession = "MS:4000063",
+                            Name = "MS2 known precursor charges fractions",
+                            Value = LCMSMSRunner.mzMLPrecursorZQuartiles }
+,
+                    //     foreach (var ThisQuartile in LCMSMSRunner.msAlignPrecursorZQuartiles)
+                    //         ThisQuartile
+                    new QualityMetric { Accession = "MS:4000062",
+                            Name = "MS2 density quantiles",
+                            Value = LCMSMSRunner.msAlignPrecursorMassQuartiles }
+,
+                ];
 
             //     foreach (var ThisQuartile in LCMSMSRunner.mzMLPeakCountQuartiles)
             //         ThisQuartile
@@ -1663,6 +1673,30 @@ namespace TDAuditor
             //         ThisQuartile
             //     LCMSMSRunner.AALinkCountAbove2
             //     LCMSMSRunner.LongestTagAbove2
+
+                // table metric example
+                DataTable table = new DataTable("Table1");
+
+                // Define columns.
+                table.Columns.Add("MS:1003059", typeof(int));  // number of peaks as a column example
+                table.Columns.Add("Column2", typeof(string));  // generic column name works too, syntactically, will not generate semantically valid table value in mzqc
+
+                // Populate rows.
+                table.Rows.Add(1, "Value1");
+                table.Rows.Add(2, "Value2");
+
+                QualityMetric m = new QualityMetric {Accession = "MS:4999999",
+                        Name = "clankin' table",
+                        // in-line conversion of the row-based DataTable to a column-based structure
+                        Value = table.Columns
+                                    .Cast<DataColumn>()
+                                    .ToDictionary(
+                                        column => column.ColumnName,
+                                        column => table.AsEnumerable()
+                                                           .Select(row => row[column])
+                                                           .ToList()
+                                    )};
+                run.QualityMetrics.Add(m);
 
                 LCMSMSRunner = LCMSMSRunner.Next;
                 runs.Add(run);
