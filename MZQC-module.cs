@@ -247,7 +247,7 @@ namespace MzqcCsLib
 
     public static class Serialize
     {
-        public static string ToJson(this Mzqc self) => JsonConvert.SerializeObject(self);
+        public static string ToJson(this Mzqc self) => JsonConvert.SerializeObject(self, Formatting.Indented);
     }
 
     internal class UnitConverter : JsonConverter
