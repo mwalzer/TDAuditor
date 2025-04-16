@@ -165,7 +165,7 @@ namespace MzqcCsLib
         public string Name { get; set; }
 
         /// Value of the parameter.
-        [JsonProperty("value")]
+        [JsonProperty("value", NullValueHandling = NullValueHandling.Ignore)]
         public object Value { get; set; }
     }
 
